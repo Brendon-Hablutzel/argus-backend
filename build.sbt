@@ -12,6 +12,7 @@ val http4sVersion = "0.23.30"
 lazy val ingestor = project
   .in(file("ingestor"))
   .dependsOn(common)
+  .enablePlugins(RevolverPlugin)
   .settings(
     name := "ingestor",
     libraryDependencies ++= Seq(
@@ -22,7 +23,6 @@ lazy val ingestor = project
       "org.http4s"    %% "http4s-dsl"          % http4sVersion
     )
   )
-  .enablePlugins(RevolverPlugin)
 
 lazy val root = project
   .in(file("."))
