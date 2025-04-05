@@ -6,8 +6,11 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 import cats.effect.kernel.Async
+import org.slf4j.LoggerFactory
 
 object KafkaClient {
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def producerResource[F[_]: Async]: Resource[F, KafkaProducer[String, String]] =
     Resource.make {
       Async[F].delay {
@@ -15,7 +18,7 @@ object KafkaClient {
 
         val kafkaUrl = sys.env.get("KAFKA_URL").getOrElse("localhost:9092")
 
-        println(s"kafka url: ${kafkaUrl}")
+        logger.info(s"kafka url: ${kafkaUrl}")
 
         props.put(
           "bootstrap.servers",

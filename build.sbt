@@ -30,7 +30,9 @@ lazy val ingestor = project
       "org.http4s"      %% "http4s-ember-server" % http4sVersion,
       "org.http4s"      %% "http4s-circe"        % http4sVersion,
       "org.http4s"      %% "http4s-dsl"          % http4sVersion,
-      "org.apache.kafka" % "kafka-clients"       % "7.9.0-ce"
+      "org.apache.kafka" % "kafka-clients"       % "7.9.0-ce",
+      "ch.qos.logback"   % "logback-classic"     % "1.5.18",
+      "org.slf4j"        % "slf4j-api"           % "2.0.17"
     ),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", _ @_*) => MergeStrategy.discard
