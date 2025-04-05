@@ -5,7 +5,15 @@ import cats.syntax.all.*
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import cats.effect.IO
-import cats.FlatMap
+import org.http4s.*
+import org.http4s.implicits.*
+import org.http4s.circe.*
+import org.http4s.Method.*
+import io.circe.syntax._
+import common.ActiveTabMessage
+import common.OkResponse
+import org.http4s.circe.CirceEntityCodec.circeEntityDecoder
+import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 
 object ArgusRoutes:
 
@@ -15,11 +23,10 @@ object ArgusRoutes:
 
     HttpRoutes.of[F] { case req @ POST -> Root / "ingest" =>
       for {
-        activeTabMessage <- req.as[Ingest.ActiveTabMessage].attempt
+        activeTabMessage <- req.as[common.ActiveTabMessage].attempt
         resp             <- activeTabMessage match {
                               case Right(body) =>
                                 for {
-                                  _                   <- Concurrent[F].pure(println(s"received request: ${body}"))
                                   messageReceivedResp <- I.post(body)
                                   resp                <- Ok(messageReceivedResp)
                                 } yield resp

@@ -2,6 +2,10 @@
 
 Scala + sbt monorepo for Argus' backend.
 
+## Kafka
+
+Kafka can be deployed locally with docker compose. Use `infra/docker-compose.yaml` and see [this article](https://developer.confluent.io/confluent-tutorials/kafka-on-docker/) for details.
+
 ## ingestor
 
 Server that takes in messages from the extension and sends them to Kafka.

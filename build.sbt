@@ -1,10 +1,18 @@
 name                     := "argus-backend"
 ThisBuild / scalaVersion := "3.6.4"
 
+val circeVersion = "0.14.12"
+
 lazy val common = project
   .in(file("common"))
   .settings(
-    name := "common"
+    name := "common",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-effect"   % "3.6.0",
+      "io.circe"      %% "circe-core"    % circeVersion,
+      "io.circe"      %% "circe-generic" % circeVersion,
+      "io.circe"      %% "circe-parser"  % circeVersion
+    )
   )
 
 val http4sVersion = "0.23.30"
@@ -15,12 +23,14 @@ lazy val ingestor = project
   .enablePlugins(RevolverPlugin, DockerPlugin)
   .settings(
     name                             := "ingestor",
+    resolvers += "Confluent" at "https://packages.confluent.io/maven/",
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "munit"               % "1.0.0" % Test,
-      "org.http4s"    %% "http4s-ember-client" % http4sVersion,
-      "org.http4s"    %% "http4s-ember-server" % http4sVersion,
-      "org.http4s"    %% "http4s-circe"        % http4sVersion,
-      "org.http4s"    %% "http4s-dsl"          % http4sVersion
+      "org.scalameta"   %% "munit"               % "1.0.0" % Test,
+      "org.http4s"      %% "http4s-ember-client" % http4sVersion,
+      "org.http4s"      %% "http4s-ember-server" % http4sVersion,
+      "org.http4s"      %% "http4s-circe"        % http4sVersion,
+      "org.http4s"      %% "http4s-dsl"          % http4sVersion,
+      "org.apache.kafka" % "kafka-clients"       % "7.9.0-ce"
     ),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", _ @_*) => MergeStrategy.discard
