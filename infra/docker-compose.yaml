@@ -23,7 +23,7 @@ services:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
   db:
-    image: postgres
+    image: timescale/timescaledb:latest-pg17
     ports:
       - 5432:5432
     environment:
