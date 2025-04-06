@@ -10,15 +10,16 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.Collections
 import org.slf4j.LoggerFactory
+import cats.effect.IO
 
 object KafkaClient {
   private val logger = LoggerFactory.getLogger(getClass)
 
   val topic = "active-tab"
 
-  def consumerResource[F[_]: Async]: Resource[F, KafkaConsumer[String, String]] =
+  def consumerResource: Resource[IO, KafkaConsumer[String, String]] =
     Resource.make {
-      Async[F].delay {
+      Async[IO].delay {
         val props = new Properties()
 
         val kafkaUrl = sys.env.get("KAFKA_URL").getOrElse("localhost:9092")
@@ -44,5 +45,5 @@ object KafkaClient {
         consumer
       }
 
-    }(consumer => Async[F].delay(consumer.close()))
+    }(consumer => Async[IO].delay(consumer.close()))
 }

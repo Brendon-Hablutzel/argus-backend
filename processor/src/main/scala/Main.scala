@@ -4,4 +4,11 @@ import cats.effect.{IO, IOApp}
 
 object Main extends IOApp.Simple:
   override def run: IO[Unit] =
-    KafkaClient.consumerResource[IO].use(Handler.impl[IO](_).consumeOnce.foreverM)
+    val resources = for {
+      consumer <- KafkaClient.consumerResource
+      session  <- DbClient.sessionResource
+    } yield (consumer, session)
+
+    resources.use { case (consumer, session) =>
+      Handler.impl(consumer, session).handleOnce.foreverM
+    }

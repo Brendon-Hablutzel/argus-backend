@@ -54,6 +54,8 @@ lazy val ingestor = project
     Compile / packageBin             := assembly.value
   )
 
+lazy val doobieVersion = "1.0.0-RC8"
+
 lazy val processor = project
   .in(file("processor"))
   .dependsOn(common)
@@ -72,6 +74,9 @@ lazy val processor = project
       "io.circe"        %% "circe-core"      % circeVersion,
       "io.circe"        %% "circe-generic"   % circeVersion,
       "io.circe"        %% "circe-parser"    % circeVersion,
+      "org.tpolecat"    %% "doobie-core"     % doobieVersion,
+      "org.tpolecat"    %% "doobie-postgres" % doobieVersion,
+      "org.tpolecat"    %% "doobie-specs2"   % doobieVersion,
       "ch.qos.logback"   % "logback-classic" % "1.5.18",
       "org.slf4j"        % "slf4j-api"       % "2.0.17"
     )

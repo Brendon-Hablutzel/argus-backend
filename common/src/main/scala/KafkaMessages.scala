@@ -23,7 +23,6 @@ object TabStatus:
   }
 
 final case class ActiveTab(
-  timestamp: Long,
   url: String,
   title: String,
   status: TabStatus
@@ -34,6 +33,7 @@ object ActiveTab:
   implicit val activeTabDecoder: Decoder[ActiveTab] = deriveDecoder[ActiveTab]
 
 final case class ActiveTabMessage(
+  timestamp: Long,
   tab: Option[ActiveTab]
 )
 
