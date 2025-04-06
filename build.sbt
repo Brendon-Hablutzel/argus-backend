@@ -59,16 +59,11 @@ lazy val doobieVersion = "1.0.0-RC8"
 lazy val processor = project
   .in(file("processor"))
   .dependsOn(common)
-  .enablePlugins(RevolverPlugin)
+  .enablePlugins(RevolverPlugin, DockerPlugin)
   .settings(
-    name := "processor",
+    name                             := "processor",
     resolvers += "Confluent" at "https://packages.confluent.io/maven/",
     libraryDependencies ++= Seq(
-      // "org.scalameta"   %% "munit"               % "1.0.0" % Test,
-      // "org.http4s"      %% "http4s-ember-client" % http4sVersion,
-      // "org.http4s"      %% "http4s-ember-server" % http4sVersion,
-      // "org.http4s"      %% "http4s-circe"        % http4sVersion,
-      // "org.http4s"      %% "http4s-dsl"          % http4sVersion,
       "org.apache.kafka" % "kafka-clients"   % "7.9.0-ce",
       "org.typelevel"   %% "cats-effect"     % "3.6.0",
       "io.circe"        %% "circe-core"      % circeVersion,
@@ -79,7 +74,25 @@ lazy val processor = project
       "org.tpolecat"    %% "doobie-specs2"   % doobieVersion,
       "ch.qos.logback"   % "logback-classic" % "1.5.18",
       "org.slf4j"        % "slf4j-api"       % "2.0.17"
-    )
+    ),
+    assembly / assemblyMergeStrategy := {
+      case PathList("META-INF", _ @_*) => MergeStrategy.discard
+      case _                           => MergeStrategy.first
+    },
+    docker / dockerfile              := {
+      val artifact: File     = assembly.value
+      val artifactTargetPath = s"/app/${artifact.name}"
+
+      new Dockerfile {
+        from("eclipse-temurin:17-jdk-jammy")
+        add(artifact, artifactTargetPath)
+        entryPoint("java", "-jar", artifactTargetPath)
+      }
+    },
+    docker / imageNames              := Seq(
+      ImageName(s"argus-processor:latest")
+    ),
+    Compile / packageBin             := assembly.value
   )
 
 lazy val root = project
