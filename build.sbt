@@ -54,9 +54,32 @@ lazy val ingestor = project
     Compile / packageBin             := assembly.value
   )
 
+lazy val processor = project
+  .in(file("processor"))
+  .dependsOn(common)
+  .enablePlugins(RevolverPlugin)
+  .settings(
+    name := "processor",
+    resolvers += "Confluent" at "https://packages.confluent.io/maven/",
+    libraryDependencies ++= Seq(
+      // "org.scalameta"   %% "munit"               % "1.0.0" % Test,
+      // "org.http4s"      %% "http4s-ember-client" % http4sVersion,
+      // "org.http4s"      %% "http4s-ember-server" % http4sVersion,
+      // "org.http4s"      %% "http4s-circe"        % http4sVersion,
+      // "org.http4s"      %% "http4s-dsl"          % http4sVersion,
+      "org.apache.kafka" % "kafka-clients"   % "7.9.0-ce",
+      "org.typelevel"   %% "cats-effect"     % "3.6.0",
+      "io.circe"        %% "circe-core"      % circeVersion,
+      "io.circe"        %% "circe-generic"   % circeVersion,
+      "io.circe"        %% "circe-parser"    % circeVersion,
+      "ch.qos.logback"   % "logback-classic" % "1.5.18",
+      "org.slf4j"        % "slf4j-api"       % "2.0.17"
+    )
+  )
+
 lazy val root = project
   .in(file("."))
-  .aggregate(common, ingestor)
+  .aggregate(common, ingestor, processor)
   .settings(
     name := "argus-backend"
   )
