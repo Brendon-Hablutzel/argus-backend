@@ -30,9 +30,13 @@ Kafka can be deployed locally with docker compose (see [this article](https://de
 
 A Postgres extension that adds better support for handling timeseries data. See [here](https://github.com/timescale/timescaledb) for more details. Like Kafka, configuration for a local TimescaleDB deployment is included in `infra/`, and an instance can be deployed locally with `infra/docker-compose.yaml`
 
+### api
+
+HTTP server that sits between clients and TimescaleDB--fetches data and exposes it on several endpoints, performing analytics and aggregation as necessary.
+
 ### ingestor
 
-Server that listens for messages from the extension and sends them to Kafka.
+HTTP server that listens for messages from the extension and sends them to Kafka.
 
 ### processor
 

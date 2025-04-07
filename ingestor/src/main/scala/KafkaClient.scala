@@ -7,6 +7,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 import cats.effect.kernel.Async
 import org.slf4j.LoggerFactory
+import org.apache.kafka.clients.producer.ProducerConfig
 
 object KafkaClient {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -21,11 +22,17 @@ object KafkaClient {
         logger.info(s"kafka url: ${kafkaUrl}")
 
         props.put(
-          "bootstrap.servers",
+          ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
           kafkaUrl
         )
-        props.put("key.serializer", classOf[StringSerializer].getName)
-        props.put("value.serializer", classOf[StringSerializer].getName)
+        props.put(
+          ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+          classOf[StringSerializer].getName
+        )
+        props.put(
+          ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+          classOf[StringSerializer].getName
+        )
         new KafkaProducer[String, String](props)
       }
     }(producer => Async[F].delay(producer.close()))
