@@ -8,10 +8,13 @@ lazy val common = project
   .settings(
     name := "common",
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect"   % "3.6.0",
-      "io.circe"      %% "circe-core"    % circeVersion,
-      "io.circe"      %% "circe-generic" % circeVersion,
-      "io.circe"      %% "circe-parser"  % circeVersion
+      "org.typelevel" %% "cats-effect"     % "3.6.0",
+      "io.circe"      %% "circe-core"      % circeVersion,
+      "io.circe"      %% "circe-generic"   % circeVersion,
+      "io.circe"      %% "circe-parser"    % circeVersion,
+      "org.tpolecat"  %% "doobie-core"     % doobieVersion,
+      "org.tpolecat"  %% "doobie-postgres" % doobieVersion,
+      "org.tpolecat"  %% "doobie-specs2"   % doobieVersion
     )
   )
 
@@ -95,9 +98,46 @@ lazy val processor = project
     Compile / packageBin             := assembly.value
   )
 
+lazy val api = project
+  .in(file("api"))
+  .dependsOn(common)
+  .enablePlugins(RevolverPlugin, DockerPlugin)
+  .settings(
+    name                             := "api",
+    libraryDependencies ++= Seq(
+      "org.http4s"    %% "http4s-ember-client" % http4sVersion,
+      "org.http4s"    %% "http4s-ember-server" % http4sVersion,
+      "org.http4s"    %% "http4s-circe"        % http4sVersion,
+      "org.http4s"    %% "http4s-dsl"          % http4sVersion,
+      "org.tpolecat"  %% "doobie-core"         % doobieVersion,
+      "org.tpolecat"  %% "doobie-postgres"     % doobieVersion,
+      "org.tpolecat"  %% "doobie-specs2"       % doobieVersion,
+      "ch.qos.logback" % "logback-classic"     % "1.5.18",
+      "org.slf4j"      % "slf4j-api"           % "2.0.17"
+    ),
+    assembly / assemblyMergeStrategy := {
+      case PathList("META-INF", _ @_*) => MergeStrategy.discard
+      case _                           => MergeStrategy.first
+    },
+    docker / dockerfile              := {
+      val artifact: File     = assembly.value
+      val artifactTargetPath = s"/app/${artifact.name}"
+
+      new Dockerfile {
+        from("eclipse-temurin:17-jdk-jammy")
+        add(artifact, artifactTargetPath)
+        entryPoint("java", "-jar", artifactTargetPath)
+      }
+    },
+    docker / imageNames              := Seq(
+      ImageName(s"argus-api:latest")
+    ),
+    Compile / packageBin             := assembly.value
+  )
+
 lazy val root = project
   .in(file("."))
-  .aggregate(common, ingestor, processor)
+  .aggregate(common, ingestor, processor, api)
   .settings(
     name := "argus-backend"
   )
