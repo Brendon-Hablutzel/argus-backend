@@ -2,30 +2,42 @@
 
 Scala + sbt monorepo for Argus' backend.
 
-## Kafka
+## Development
 
-Kafka can be deployed locally with docker compose (see [this article](https://developer.confluent.io/confluent-tutorials/kafka-on-docker/) for details). Use `infra/docker-compose.yaml`.
-
-## ingestor
-
-Server that takes in messages from the extension and sends them to Kafka.
-
-To run with hot reloading:
+To run one of the scala services with hot reloading:
 
 ```bash
 sbt
 
-project ingestor
+project <project name>
 
 ~reStart
 ```
 
-To build and locally publish a docker image:
+To build and locally publish a docker image for one of the scala services:
 
 ```bash
-DOCKER_BUILDKIT=0 sbt "ingestor / docker"
+DOCKER_BUILDKIT=0 sbt "<project name> / docker"
 ```
 
-## common
+## Components
+
+### Kafka
+
+Kafka can be deployed locally with docker compose (see [this article](https://developer.confluent.io/confluent-tutorials/kafka-on-docker/) for details). Use `infra/docker-compose.yaml`.
+
+### TimescaleDB
+
+A Postgres extension that adds better support for handling timeseries data. See [here](https://github.com/timescale/timescaledb) for more details. Like Kafka, configuration for a local TimescaleDB deployment is included in `infra/`, and an instance can be deployed locally with `infra/docker-compose.yaml`
+
+### ingestor
+
+Server that listens for messages from the extension and sends them to Kafka.
+
+### processor
+
+Kafka consumer--continuously polls for messages from Kafka and saves these messages in the database.
+
+### common
 
 Contains common code, primarily data types used for communication between services.
