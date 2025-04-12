@@ -52,44 +52,36 @@ object Handler:
 
                             validRecords
                           }
-          _            <- IO(println(s"saving ${validRecords.length} rows: ${validRecords}"))
+          _            <- IO(logger.info(s"saving ${validRecords.length} rows: ${validRecords}"))
           res          <- if (validRecords.nonEmpty) {
                             val sql =
-                              """INSERT INTO activetabs (timestamp, url, title, status, tab_selected)
+                              """INSERT INTO activetabs (timestamp, url, title, status, profile_id)
                        |VALUES (?, ?, ?, ?, ?)""".stripMargin
 
                             val update =
-                              Update[(Timestamp, String, String, String, Boolean)](sql)
+                              Update[(Timestamp, String, String, String, String)](sql)
                                 .updateMany(
                                   validRecords
                                     .map(record =>
                                       val timestamp =
                                         Timestamp.from(Instant.ofEpochMilli(record.timestamp))
-                                      record.tab match {
-                                        case None      =>
-                                          (
-                                            timestamp,
-                                            "",
-                                            "",
-                                            "",
-                                            false
-                                          )
-                                        case Some(tab) =>
-                                          (
-                                            timestamp,
-                                            tab.url,
-                                            tab.title,
-                                            tab.status.status,
-                                            true
-                                          )
-                                      }
+
+                                      val tab = record.tab
+
+                                      (
+                                        timestamp,
+                                        tab.url,
+                                        tab.title,
+                                        tab.status.status,
+                                        tab.profileId
+                                      )
                                     )
                                 )
 
                             update
                               .transact(transactor)
                               .map { rows =>
-                                println(s"${rows} rows inserted successfully")
+                                logger.info(s"${rows} rows inserted successfully")
                               }
                               .void
                           } else IO.unit

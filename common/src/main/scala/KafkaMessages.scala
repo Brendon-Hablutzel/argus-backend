@@ -49,7 +49,8 @@ object TabStatus:
 final case class ActiveTab(
   url: String,
   title: String,
-  status: TabStatus
+  status: TabStatus,
+  profileId: String
 )
 
 object ActiveTab:
@@ -58,7 +59,7 @@ object ActiveTab:
 
 final case class ActiveTabMessage(
   timestamp: Long,
-  tab: Option[ActiveTab]
+  tab: ActiveTab
 )
 
 object ActiveTabMessage:
@@ -72,7 +73,7 @@ final case class TabEventRow(
   url: String,
   title: String,
   status: TabStatus,
-  tabSelected: Boolean
+  profileId: String
 )
 
 final case class OkResponse(success: Boolean)
@@ -86,7 +87,7 @@ final case class TabEvent(
   url: String,
   title: String,
   status: TabStatus,
-  tabSelected: Boolean
+  profielId: String
 )
 
 object TabEvent:

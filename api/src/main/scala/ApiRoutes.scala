@@ -19,5 +19,6 @@ object ApiRoutes:
     import dsl.*
 
     HttpRoutes.of[IO] { case req @ GET -> Root / "metrics" / LongVar(since) =>
-      Ok(M.get(since))
+      val profileIds: Option[Seq[String]] = req.multiParams.get("profileId")
+      Ok(M.get(since, profileIds))
     }
