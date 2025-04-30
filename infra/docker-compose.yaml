@@ -21,6 +21,8 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    networks:
+      - events
 
   db:
     image: timescale/timescaledb:latest-pg17
@@ -31,6 +33,59 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
+    networks:
+      - backend
+
+  api:
+    image: argus-api:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile.api
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/argus
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+    ports:
+      - 8081:8081
+    networks:
+      - backend
+
+  processor:
+    image: argus-processor:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile.processor
+    depends_on:
+      - db
+      - broker
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/argus
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      KAFKA_URL: broker:29092
+    networks:
+      - backend
+      - events
+
+  ingestor:
+    image: argus-ingestor:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile.ingestor
+    depends_on:
+      - broker
+    environment:
+      KAFKA_URL: broker:29092
+    ports:
+      - 8080:8080
+    networks:
+      - events
 
 volumes:
   pgdata:
+
+networks:
+  backend:
+  events:

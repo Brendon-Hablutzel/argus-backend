@@ -22,6 +22,7 @@ object Ingest:
   def impl[F[_]: Async](producer: KafkaProducer[String, String]): Ingest[F] =
     new Ingest[F] {
       def post(activeTabMessage: common.ActiveTabMessage): F[common.OkResponse] =
+        logger.info(s"processing active tab message: $activeTabMessage")
         val record = new ProducerRecord[String, String](
           "active-tab",                    // topic
           // TODO: for multiple users, divide them by key perhaps

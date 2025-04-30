@@ -14,11 +14,23 @@ project <project name>
 ~reStart
 ```
 
-To build and locally publish a docker image for one of the scala services:
+To prepare for docker building, you must run the following:
+
+```
+sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
+```
+
+Individual project images can be built as follows:
+
+```
+docker build -f Dockerfile.api -t argus-api:latest .
+```
+
+<!-- To build and locally publish a docker image for one of the scala services:
 
 ```bash
 DOCKER_BUILDKIT=0 sbt "<project name> / docker"
-```
+``` -->
 
 ## Components
 

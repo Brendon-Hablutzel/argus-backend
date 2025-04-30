@@ -38,8 +38,9 @@ lazy val ingestor = project
       "org.slf4j"        % "slf4j-api"           % "2.0.17"
     ),
     assembly / assemblyMergeStrategy := {
-      case PathList("META-INF", _ @_*) => MergeStrategy.discard
-      case _                           => MergeStrategy.first
+      case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat
+      case PathList("META-INF", _ @_*)               => MergeStrategy.discard
+      case _                                         => MergeStrategy.first
     },
     docker / dockerfile              := {
       val artifact: File     = assembly.value
@@ -79,8 +80,9 @@ lazy val processor = project
       "org.slf4j"        % "slf4j-api"       % "2.0.17"
     ),
     assembly / assemblyMergeStrategy := {
-      case PathList("META-INF", _ @_*) => MergeStrategy.discard
-      case _                           => MergeStrategy.first
+      case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat
+      case PathList("META-INF", _ @_*)               => MergeStrategy.discard
+      case _                                         => MergeStrategy.first
     },
     docker / dockerfile              := {
       val artifact: File     = assembly.value
@@ -116,8 +118,9 @@ lazy val api = project
       "org.slf4j"      % "slf4j-api"           % "2.0.17"
     ),
     assembly / assemblyMergeStrategy := {
-      case PathList("META-INF", _ @_*) => MergeStrategy.discard
-      case _                           => MergeStrategy.first
+      case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat
+      case PathList("META-INF", _ @_*)               => MergeStrategy.discard
+      case _                                         => MergeStrategy.first
     },
     docker / dockerfile              := {
       val artifact: File     = assembly.value

@@ -10,10 +10,12 @@ object DbClient:
       IO {
         Transactor.fromDriverManager[IO](
           driver = "org.postgresql.Driver",
-          // TODO: make this configurable from environment variables
-          url = "jdbc:postgresql://localhost:5432/argus",
-          user = "postgres",
-          password = "postgres",
+          url =
+            sys.env.getOrElse("DATABASE_URL", "jdbc:postgresql://localhost:5432/argus"),
+          // url = "jdbc:postgresql://localhost:5432/argus",
+          // url = "jdbc:postgresql://host.docker.internal:5432/argus"
+          user = sys.env.getOrElse("DATABASE_USERNAME", "postgres"),
+          password = sys.env.getOrElse("DATABASE_PASSWORD", "postgres"),
           logHandler = None
         )
       }
