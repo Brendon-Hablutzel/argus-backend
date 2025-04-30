@@ -18,7 +18,9 @@ object ApiRoutes:
     val dsl = new Http4sDsl[IO] {}
     import dsl.*
 
-    HttpRoutes.of[IO] { case req @ GET -> Root / "metrics" / LongVar(since) =>
+    HttpRoutes.of[IO] { case req @ GET -> Root / "metrics" =>
       val profileIds: Option[Seq[String]] = req.multiParams.get("profileId")
-      Ok(M.get(since, profileIds))
+      val since: Option[Long]             = req.params.get("since").map(_.toLong)
+      val until: Option[Long]             = req.params.get("until").map(_.toLong)
+      Ok(M.get(since, until, profileIds))
     }

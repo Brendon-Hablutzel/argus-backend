@@ -13,32 +13,47 @@ import doobie.implicits.javatimedrivernative._
 import cats.data.NonEmptyList
 
 trait Metrics:
-  def get(since: Long, profileIds: Option[Seq[String]]): IO[common.EventsResponse]
+  def get(
+    since: Option[Long],
+    until: Option[Long],
+    profileIds: Option[Seq[String]]
+  ): IO[common.EventsResponse]
 
 object Metrics:
   private val logger = LoggerFactory.getLogger(getClass)
 
   def impl(transactor: Transactor[IO]): Metrics =
     new Metrics {
-      def get(since: Long, profileIds: Option[Seq[String]]): IO[common.EventsResponse] =
-        val sinceTimestamp = Instant.ofEpochMilli(since)
+      def get(
+        since: Option[Long],
+        until: Option[Long],
+        profileIds: Option[Seq[String]]
+      ): IO[common.EventsResponse] =
 
-        val sinceFragment = fr"timestamp >= $sinceTimestamp"
+        val sinceFragment = since
+          .map(Instant.ofEpochMilli(_))
+          .map(sinceTimestamp => fr"timestamp >= $sinceTimestamp")
 
-        val profileFragment = profileIds match {
-          case Some(ids) =>
-            NonEmptyList.fromList(ids.toList) match {
-              case Some(nel) =>
-                fragments.and(sinceFragment, fragments.in(fr"profile_id", nel))
-              case None      => sinceFragment
-            }
-          case None      =>
-            sinceFragment
+        val untilFragment = until
+          .map(Instant.ofEpochMilli(_))
+          .map(untilTimestamp => fr"timestamp <= $untilTimestamp")
+
+        val profileFragment =
+          profileIds
+            .map(profileIds => NonEmptyList.fromList(profileIds.toList))
+            .flatten
+            .map(nonEmptyProfileIds => fragments.in(fr"profile_id", nonEmptyProfileIds))
+
+        val selectorFragment =
+          fragments.andOpt(sinceFragment, untilFragment, profileFragment)
+
+        val query = selectorFragment match {
+          case None           => (fr"SELECT * FROM activetabs").query[common.TabEventRow].to[List]
+          case Some(selector) =>
+            (fr"SELECT * FROM activetabs WHERE" ++ selector)
+              .query[common.TabEventRow]
+              .to[List]
         }
-
-        val query = (fr"SELECT * FROM activetabs WHERE" ++ profileFragment)
-          .query[common.TabEventRow]
-          .to[List]
 
         for {
           res    <- query.transact(transactor)
