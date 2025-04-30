@@ -87,7 +87,7 @@ final case class TabEvent(
   url: String,
   title: String,
   status: TabStatus,
-  profielId: String
+  profileId: String
 )
 
 object TabEvent:
