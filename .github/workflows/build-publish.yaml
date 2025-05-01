@@ -27,6 +27,9 @@ jobs:
       - name: Compile and assemble projects
         run: sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
 
+      - name: Check formatting with scalafmt
+        run: sbt scalafmtCheck
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
