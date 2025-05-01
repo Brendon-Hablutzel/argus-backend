@@ -1,0 +1,37 @@
+# sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
+
+name: Build and Push Multi-Arch Docker Image
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Compile and assemble projects
+        run: sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.api
+          push: true
+          tags: brendonhab/argus-api:latest
+          platforms: linux/amd64,linux/arm64
+
