@@ -36,7 +36,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build and push multi-arch image
+      - name: Build and push argus-api
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -45,3 +45,21 @@ jobs:
           tags: brendonhab/argus-api:latest
           platforms: linux/amd64,linux/arm64
 
+      - name: Build and push argus-ingestor
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.ingestor
+          push: true
+          tags: brendonhab/argus-ingestor:latest
+          platforms: linux/amd64,linux/arm64
+
+      
+      - name: Build and push argus-processor
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.processor
+          push: true
+          tags: brendonhab/argus-processor:latest
+          platforms: linux/amd64,linux/arm64
