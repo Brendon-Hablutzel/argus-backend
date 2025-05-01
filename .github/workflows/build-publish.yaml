@@ -19,14 +19,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+          cache: sbt
 
-      - name: Install sbt
-        run: |
-          curl -sL https://github.com/sbt/sbt/releases/download/v1.8.0/sbt-1.8.0.deb -o sbt.deb
-          sudo dpkg -i sbt.deb
-          sudo apt-get update
-          sudo apt-get install sbt
-
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Compile and assemble projects
         run: sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
