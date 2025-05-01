@@ -14,6 +14,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install sbt
+        run: |
+          curl -sL https://github.com/sbt/sbt/releases/download/v1.8.0/sbt-1.8.0.deb -o sbt.deb
+          sudo dpkg -i sbt.deb
+          sudo apt-get update
+          sudo apt-get install sbt
+
+
       - name: Compile and assemble projects
         run: sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
 
