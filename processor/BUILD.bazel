@@ -1,0 +1,59 @@
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@tar.bzl", "tar")
+load("//:scala/scalafmt.bzl", "scala_binary")
+
+scala_binary(
+    name = "processor_binary",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    format = True,
+    main_class = "processor.Main",
+    resources = glob(["src/main/resources/*"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common",
+        "@maven//:ch_qos_logback_logback_classic",
+        "@maven//:com_chuusai_shapeless_2_13",
+        "@maven//:com_comcast_ip4s_core_2_13",
+        "@maven//:io_circe_circe_core_2_13",
+        "@maven//:io_circe_circe_generic_2_13",
+        "@maven//:io_circe_circe_parser_2_13",
+        "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:org_slf4j_slf4j_api",
+        "@maven//:org_tpolecat_doobie_core_2_13",
+        "@maven//:org_tpolecat_doobie_free_2_13",
+        "@maven//:org_tpolecat_doobie_hikari_2_13",
+        "@maven//:org_tpolecat_doobie_postgres_2_13",
+        "@maven//:org_typelevel_cats_core_2_13",
+        "@maven//:org_typelevel_cats_effect_2_13",
+        "@maven//:org_typelevel_cats_effect_kernel_2_13",
+        "@maven//:org_typelevel_cats_effect_std_2_13",
+        "@maven//:org_typelevel_cats_free_2_13",
+        "@maven//:org_typelevel_cats_kernel_2_13",
+    ],
+)
+
+tar(
+    name = "processor_tar",
+    # _deploy suffix indicates fat jar, as opposed to thin jar, which would be :processor_binary.jar
+    srcs = [":processor_binary_deploy.jar"],
+)
+
+oci_image(
+    name = "processor_image",
+    base = "@java_base",
+    # the jar gets put in /processor since that's where it is in the bazel-outputted tar
+    entrypoint = [
+        "java",
+        # TODO: ensure this works
+        "-Dlogback.configurationFile=/processor/logback.xml",
+        "-jar",
+        "/processor/processor_binary_deploy.jar",
+    ],
+    tars = [":processor_tar"],
+)
+
+oci_load(
+    name = "processor_docker",
+    image = ":processor_image",
+    repo_tags = ["argus-processor:latest"],
+)

@@ -1,1 +1,0 @@
-Compile / run / fork := true

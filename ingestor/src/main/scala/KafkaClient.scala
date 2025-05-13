@@ -1,13 +1,12 @@
 package ingestor
 
-import cats.syntax.all.*
-import cats.effect.{IO, Resource}
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.common.serialization.StringSerializer
-import java.util.Properties
+import cats.effect.Resource
 import cats.effect.kernel.Async
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
+import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
-import org.apache.kafka.clients.producer.ProducerConfig
+
+import java.util.Properties
 
 object KafkaClient {
   private val logger = LoggerFactory.getLogger(getClass)
