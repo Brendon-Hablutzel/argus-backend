@@ -36,52 +36,53 @@ services:
     networks:
       - backend
 
-  api:
-    image: argus-api:latest
-    build:
-      context: ..
-      dockerfile: Dockerfile.api
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: jdbc:postgresql://db:5432/argus
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: postgres
-    ports:
-      - 8081:8081
-    networks:
-      - backend
-
-  processor:
-    image: argus-processor:latest
-    build:
-      context: ..
-      dockerfile: Dockerfile.processor
-    depends_on:
-      - db
-      - broker
-    environment:
-      DATABASE_URL: jdbc:postgresql://db:5432/argus
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: postgres
-      KAFKA_URL: broker:29092
-    networks:
-      - backend
-      - events
-
-  ingestor:
-    image: argus-ingestor:latest
-    build:
-      context: ..
-      dockerfile: Dockerfile.ingestor
-    depends_on:
-      - broker
-    environment:
-      KAFKA_URL: broker:29092
-    ports:
-      - 8080:8080
-    networks:
-      - events
+# TODO: update with new images
+#  api:
+#    image: argus-api:latest
+#    build:
+#      context: ..
+#      dockerfile: Dockerfile.api
+#    depends_on:
+#      - db
+#    environment:
+#      DATABASE_URL: jdbc:postgresql://db:5432/argus
+#      DATABASE_USER: postgres
+#      DATABASE_PASSWORD: postgres
+#    ports:
+#      - 8081:8081
+#    networks:
+#      - backend
+#
+#  processor:
+#    image: argus-processor:latest
+#    build:
+#      context: ..
+#      dockerfile: Dockerfile.processor
+#    depends_on:
+#      - db
+#      - broker
+#    environment:
+#      DATABASE_URL: jdbc:postgresql://db:5432/argus
+#      DATABASE_USER: postgres
+#      DATABASE_PASSWORD: postgres
+#      KAFKA_URL: broker:29092
+#    networks:
+#      - backend
+#      - events
+#
+#  ingestor:
+#    image: argus-ingestor:latest
+#    build:
+#      context: ..
+#      dockerfile: Dockerfile.ingestor
+#    depends_on:
+#      - broker
+#    environment:
+#      KAFKA_URL: broker:29092
+#    ports:
+#      - 8080:8080
+#    networks:
+#      - events
 
 volumes:
   pgdata:
