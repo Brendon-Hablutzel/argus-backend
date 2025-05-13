@@ -44,7 +44,7 @@ jobs:
 
       - name: Build processor image
         run: |
-          bazel run //process:processor_docker && \
+          bazel run //processor:processor_docker && \
           docker tag argus-processor:latest ${{ secrets.DOCKER_USERNAME }}/argus-processor:latest
         if: github.ref == 'refs/heads/main'
 
