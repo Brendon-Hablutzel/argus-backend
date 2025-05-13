@@ -14,8 +14,8 @@ object ArgusServer {
       producer <- KafkaClient.producerResource
       server   <- {
         val ingestionAlg = Ingest.impl[F](producer)
-        val httpApp      = (ArgusRoutes.ingestionRoutes[F](ingestionAlg)).orNotFound
-        val finalHttpApp = Logger.httpApp(true, true)(httpApp)
+        val httpApp      = ArgusRoutes.ingestionRoutes[F](ingestionAlg).orNotFound
+        val finalHttpApp = Logger.httpApp(logHeaders = true, logBody = true)(httpApp)
 
         EmberServerBuilder
           .default[F]

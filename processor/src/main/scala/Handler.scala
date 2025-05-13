@@ -29,19 +29,16 @@ object Handler {
           records      <-
             IO.blocking(consumer.poll(Duration.ofMillis(5000)))
           validRecords <- IO {
-                            val mapped
-                              : List[Either[(String, String, Error), ActiveTabMessage]] =
+                            val mapped =
                               records.asScala.toList.map(record =>
-                                decode[ActiveTabMessage](record.value()).left.map { err =>
+                                decode[ActiveTabMessage](record.value()).left.map(err =>
                                   // TODO: why err.toString
                                   (
-                                    (
-                                      record.key(),
-                                      record.value(),
-                                      new Error(err.toString)
-                                    )
+                                    record.key(),
+                                    record.value(),
+                                    new Error(err.toString)
                                   )
-                                }
+                                )
                               )
 
                             val (invalidRecords, validRecords) =
@@ -50,14 +47,14 @@ object Handler {
                             invalidRecords.traverse_[IO, Unit] { case (key, value, err) =>
                               IO(
                                 logger.error(
-                                  s"invalid record (${err}): (${key}, ${value})"
+                                  s"invalid record ($err): ($key, $value)"
                                 )
                               )
                             }
 
                             validRecords
                           }
-          _            <- IO(logger.info(s"saving ${validRecords.length} rows: ${validRecords}"))
+          _            <- IO(logger.info(s"saving ${validRecords.length} rows: $validRecords"))
           res          <- if (validRecords.nonEmpty) {
                             val records = validRecords.map { record =>
                               val timestamp =
@@ -87,7 +84,7 @@ object Handler {
                               )
                               .transact(transactor)
                               .map { rows =>
-                                logger.info(s"${rows} rows inserted successfully")
+                                logger.info(s"$rows rows inserted successfully")
                               }
                               .void
                           } else IO.unit

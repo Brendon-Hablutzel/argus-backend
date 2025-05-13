@@ -5,7 +5,6 @@ import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragments
 import doobie.util.transactor.Transactor
-import org.slf4j.LoggerFactory
 
 import java.sql.Timestamp
 
@@ -18,8 +17,6 @@ trait Metrics {
 }
 
 object Metrics {
-
-  private val logger = LoggerFactory.getLogger(getClass)
 
   def impl(transactor: Transactor[IO]): Metrics =
     new Metrics {
@@ -46,7 +43,7 @@ object Metrics {
           fragments.andOpt(sinceFragment, untilFragment, profileFragment)
 
         val query = selectorFragment match {
-          case None           => (fr"SELECT * FROM activetabs").query[common.TabEventRow].to[List]
+          case None           => fr"SELECT * FROM activetabs".query[common.TabEventRow].to[List]
           case Some(selector) =>
             (fr"SELECT * FROM activetabs WHERE" ++ selector)
               .query[common.TabEventRow]

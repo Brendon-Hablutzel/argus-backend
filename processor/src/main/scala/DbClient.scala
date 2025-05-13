@@ -19,7 +19,7 @@ object DbClient {
           logHandler = None
         )
       }
-    } { transactor =>
+    } { _ =>
       IO.unit
     }
 }

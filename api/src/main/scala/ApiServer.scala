@@ -4,11 +4,8 @@ import cats.effect.IO
 import com.comcast.ip4s._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.middleware.Logger
-import org.slf4j.LoggerFactory
 
 object ApiServer {
-
-  private val logger = LoggerFactory.getLogger(getClass)
 
   def run: IO[Nothing] = {
 
@@ -16,8 +13,8 @@ object ApiServer {
       transactor <- DbClient.sessionResource
       server     <- {
         val metricsAlg   = Metrics.impl(transactor)
-        val httpApp      = (ApiRoutes.metricsRoutes(metricsAlg)).orNotFound
-        val finalHttpApp = Logger.httpApp(true, true)(httpApp)
+        val httpApp      = ApiRoutes.metricsRoutes(metricsAlg).orNotFound
+        val finalHttpApp = Logger.httpApp(logHeaders = true, logBody = true)(httpApp)
 
         EmberServerBuilder
           .default[IO]

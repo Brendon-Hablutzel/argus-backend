@@ -1,7 +1,5 @@
 package processor
 
-import cats.syntax.all._
-import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
@@ -24,7 +22,7 @@ object KafkaClient {
 
         val kafkaUrl = sys.env.getOrElse("KAFKA_URL", "localhost:9092")
 
-        logger.info(s"kafka url: ${kafkaUrl}")
+        logger.info(s"kafka url: $kafkaUrl")
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaUrl)
 

@@ -1,4 +1,4 @@
-package ingestor;
+package ingestor
 
 import cats.effect.Concurrent
 import cats.syntax.all._

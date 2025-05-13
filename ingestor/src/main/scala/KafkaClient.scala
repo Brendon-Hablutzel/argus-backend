@@ -16,9 +16,9 @@ object KafkaClient {
       Async[F].delay {
         val props = new Properties()
 
-        val kafkaUrl = sys.env.get("KAFKA_URL").getOrElse("localhost:9092")
+        val kafkaUrl = sys.env.getOrElse("KAFKA_URL", "localhost:9092")
 
-        logger.info(s"kafka url: ${kafkaUrl}")
+        logger.info(s"kafka url: $kafkaUrl")
 
         props.put(
           ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
