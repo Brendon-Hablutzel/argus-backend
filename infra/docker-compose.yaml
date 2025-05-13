@@ -4,7 +4,7 @@ services:
     hostname: broker
     container_name: broker
     ports:
-      - 9092:9092
+      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
@@ -27,7 +27,7 @@ services:
   db:
     image: timescale/timescaledb:latest-pg17
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: postgres
     volumes:
@@ -36,53 +36,43 @@ services:
     networks:
       - backend
 
-# TODO: update with new images
-#  api:
-#    image: argus-api:latest
-#    build:
-#      context: ..
-#      dockerfile: Dockerfile.api
-#    depends_on:
-#      - db
-#    environment:
-#      DATABASE_URL: jdbc:postgresql://db:5432/argus
-#      DATABASE_USER: postgres
-#      DATABASE_PASSWORD: postgres
-#    ports:
-#      - 8081:8081
-#    networks:
-#      - backend
-#
-#  processor:
-#    image: argus-processor:latest
-#    build:
-#      context: ..
-#      dockerfile: Dockerfile.processor
-#    depends_on:
-#      - db
-#      - broker
-#    environment:
-#      DATABASE_URL: jdbc:postgresql://db:5432/argus
-#      DATABASE_USER: postgres
-#      DATABASE_PASSWORD: postgres
-#      KAFKA_URL: broker:29092
-#    networks:
-#      - backend
-#      - events
-#
-#  ingestor:
-#    image: argus-ingestor:latest
-#    build:
-#      context: ..
-#      dockerfile: Dockerfile.ingestor
-#    depends_on:
-#      - broker
-#    environment:
-#      KAFKA_URL: broker:29092
-#    ports:
-#      - 8080:8080
-#    networks:
-#      - events
+  api:
+    image: argus-api:latest
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/argus
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+    ports:
+      - 8081:8081
+    networks:
+      - backend
+
+  processor:
+    image: argus-processor:latest
+    depends_on:
+      - db
+      - broker
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/argus
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      KAFKA_URL: broker:29092
+    networks:
+      - backend
+      - events
+
+  ingestor:
+    image: argus-ingestor:latest
+    depends_on:
+      - broker
+    environment:
+      KAFKA_URL: broker:29092
+    ports:
+      - 8080:8080
+    networks:
+      - events
 
 volumes:
   pgdata:
