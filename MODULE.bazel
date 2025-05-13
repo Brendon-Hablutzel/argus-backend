@@ -1,0 +1,141 @@
+"""root MODULE.bazel file"""
+
+module(
+    name = "argus_backend",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "rules_scala", version = "7.0.0")
+bazel_dep(name = "rules_java", version = "8.11.0")
+bazel_dep(name = "rules_jvm_external", version = "6.7")
+bazel_dep(name = "rules_oci", version = "2.2.6")
+bazel_dep(name = "tar.bzl", version = "0.2.1")
+
+scala_config = use_extension(
+    "@rules_scala//scala/extensions:config.bzl",
+    "scala_config",
+)
+scala_config.settings(
+    scala_version = "2.13.16",
+)
+
+scala_deps = use_extension(
+    "@rules_scala//scala/extensions:deps.bzl",
+    "scala_deps",
+)
+scala_deps.scala()
+scala_deps.scalafmt(
+    default_config = ".scalafmt.conf",
+)
+
+scala_protoc = use_extension(
+    "@rules_scala//scala/extensions:protoc.bzl",
+    "scala_protoc",
+    dev_dependency = True,
+)
+use_repo(scala_protoc, "rules_scala_protoc_toolchains")
+
+register_toolchains(
+    "@rules_scala_protoc_toolchains//...:all",
+    dev_dependency = True,
+)
+
+bazel_dep(
+    name = "protobuf",
+    version = "30.2",
+    repo_name = "com_google_protobuf",
+)
+single_version_override(
+    module_name = "protobuf",
+    patch_strip = 1,
+    patches = ["//:protobuf.patch"],
+    version = "30.2",
+)
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven",
+    artifacts = [
+        # Http4s
+        "org.http4s:http4s-ember-client_2.13:0.23.30",
+        "org.http4s:http4s-ember-server_2.13:0.23.30",
+        "org.http4s:http4s-circe_2.13:0.23.30",
+        "org.http4s:http4s-dsl_2.13:0.23.30",
+        "org.http4s:http4s-core_2.13:0.23.30",
+        "org.http4s:http4s-server_2.13:0.23.30",
+        "org.http4s:http4s-client_2.13:0.23.30",
+        "org.http4s:http4s-jawn_2.13:0.23.30",
+
+        # Circe
+        "io.circe:circe-core_2.13:0.14.12",
+        "io.circe:circe-generic_2.13:0.14.12",
+        "io.circe:circe-parser_2.13:0.14.12",
+
+        # required by circe
+        "com.chuusai:shapeless_2.13:2.3.10",
+
+        # Comcast ip4s
+        "com.comcast:ip4s-core_2.13:3.7.0",
+
+        # fs2
+        "co.fs2:fs2-core_2.13:3.12.0",
+        "co.fs2:fs2-io_2.13:3.12.0",
+
+        # kafka
+        "org.apache.kafka:kafka-clients:7.9.0-ce",
+
+        # Logging
+        "ch.qos.logback:logback-classic:1.5.18",
+        "org.slf4j:slf4j-api:2.0.17",
+
+        # Doobie
+        "org.tpolecat:doobie-core_2.13:1.0.0-RC8",
+        "org.tpolecat:doobie-postgres_2.13:1.0.0-RC8",
+        "org.tpolecat:doobie-hikari_2.13:1.0.0-RC8",
+        "org.tpolecat:doobie-free_2.13:1.0.0-RC8",
+
+        # Cats Effect
+        "org.typelevel:cats-core_2.13:2.10.0",
+        "org.typelevel:cats-free_2.13:2.10.0",
+        "org.typelevel:cats-kernel_2.13:2.10.0",
+        "org.typelevel:cats-effect_2.13:3.6.0",
+        "org.typelevel:cats-effect-kernel_2.13:3.6.0",
+        "org.typelevel:cats-effect-std_2.13:3.6.0",
+
+        # random stuff
+        "org.typelevel:literally_2.13:1.1.0",
+        "org.tpolecat:typename_2.13:1.0.0",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+        "https://packages.confluent.io/maven/",
+    ],
+)
+use_repo(maven, "maven")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "java_base",
+    digest = "sha256:d80cf84d4d49682f047cb303a11be1fcc8322b1e4cd7a7c2b17454085c1f2ffb",
+    image = "eclipse-temurin",
+    platforms = [
+        "linux/amd64",
+        "linux/arm/v7",
+        "linux/arm64/v8",
+        "linux/ppc64le",
+        "linux/s390x",
+        "unknown/unknown",
+    ],
+)
+
+# for images
+use_repo(
+    oci,
+    "java_base",
+    "java_base_linux_amd64",
+    "java_base_linux_arm64_v8",
+    "java_base_linux_arm_v7",
+    "java_base_linux_ppc64le",
+    "java_base_linux_s390x",
+    "java_base_unknown_unknown",
+)

@@ -1,27 +1,22 @@
-package ingestor;
+package ingestor
 
-import cats.syntax.all.*
-import io.circe.{Encoder, Decoder}
-import org.http4s.*
-import org.http4s.implicits.*
-import org.http4s.circe.*
-import org.http4s.Method.*
-import cats.effect.Concurrent
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
-import java.util.Properties
 import cats.effect.kernel.Async
+import cats.syntax.all._
 import io.circe.syntax._
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.slf4j.LoggerFactory
 
-trait Ingest[F[_]]:
+trait Ingest[F[_]] {
   def post(activeTabMessage: common.ActiveTabMessage): F[common.OkResponse]
+}
 
-object Ingest:
+object Ingest {
   private val logger = LoggerFactory.getLogger(getClass)
 
   def impl[F[_]: Async](producer: KafkaProducer[String, String]): Ingest[F] =
     new Ingest[F] {
-      def post(activeTabMessage: common.ActiveTabMessage): F[common.OkResponse] =
+      def post(activeTabMessage: common.ActiveTabMessage): F[common.OkResponse] = {
+
         logger.info(s"processing active tab message: $activeTabMessage")
         val record = new ProducerRecord[String, String](
           "active-tab",                    // topic
@@ -39,4 +34,7 @@ object Ingest:
               logger.error("failed to send message to kafka", ex)
               common.OkResponse(false)
           }
+      }
     }
+
+}

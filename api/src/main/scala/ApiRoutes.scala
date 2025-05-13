@@ -1,26 +1,26 @@
 package api
 
-import cats.effect.Concurrent
-import cats.syntax.all.*
-import org.http4s.HttpRoutes
-import org.http4s.dsl.Http4sDsl
 import cats.effect.IO
-import org.http4s.*
-import org.http4s.implicits.*
-import org.http4s.circe.*
-import org.http4s.Method.*
-import org.http4s.circe.CirceEntityCodec.circeEntityDecoder
-import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
+import common.EventsResponse
+import org.http4s._
+import org.http4s.circe._
+import org.http4s.dsl.Http4sDsl
 
-object ApiRoutes:
+object ApiRoutes {
+  implicit val eventsResponseEntityEncoder: EntityEncoder[IO, EventsResponse] =
+    jsonEncoderOf[IO, EventsResponse]
 
-  def metricsRoutes(M: Metrics): HttpRoutes[IO] =
-    val dsl = new Http4sDsl[IO] {}
-    import dsl.*
+    def metricsRoutes(M: Metrics): HttpRoutes[IO] = {
 
-    HttpRoutes.of[IO] { case req @ GET -> Root / "metrics" =>
-      val profileIds: Option[Seq[String]] = req.multiParams.get("profileId")
-      val since: Option[Long]             = req.params.get("since").map(_.toLong)
-      val until: Option[Long]             = req.params.get("until").map(_.toLong)
-      Ok(M.get(since, until, profileIds))
+      val dsl = new Http4sDsl[IO] {}
+      import dsl._
+
+      HttpRoutes.of[IO] { case req @ GET -> Root / "metrics" =>
+        val profileIds: Option[Seq[String]] = req.multiParams.get("profileId")
+        val since: Option[Long]             = req.params.get("since").map(_.toLong)
+        val until: Option[Long]             = req.params.get("until").map(_.toLong)
+        Ok(M.get(since, until, profileIds))
+      }
     }
+
+}

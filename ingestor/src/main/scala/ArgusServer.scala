@@ -1,24 +1,21 @@
 package ingestor
 
 import cats.effect.Async
-import cats.syntax.all.*
-import com.comcast.ip4s.*
+import com.comcast.ip4s.IpLiteralSyntax
 import fs2.io.net.Network
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.implicits.*
 import org.http4s.server.middleware.Logger
-import org.slf4j.LoggerFactory
 
-object ArgusServer:
-  private val logger = LoggerFactory.getLogger(getClass)
+object ArgusServer {
 
-  def run[F[_]: Async: Network]: F[Nothing] =
+  def run[F[_]: Async: Network]: F[Nothing] = {
+
     val composedResource = for {
       producer <- KafkaClient.producerResource
       server   <- {
         val ingestionAlg = Ingest.impl[F](producer)
-        val httpApp      = (ArgusRoutes.ingestionRoutes[F](ingestionAlg)).orNotFound
-        val finalHttpApp = Logger.httpApp(true, true)(httpApp)
+        val httpApp      = ArgusRoutes.ingestionRoutes[F](ingestionAlg).orNotFound
+        val finalHttpApp = Logger.httpApp(logHeaders = true, logBody = true)(httpApp)
 
         EmberServerBuilder
           .default[F]
@@ -30,3 +27,5 @@ object ArgusServer:
     } yield server
 
     composedResource.useForever
+  }
+}

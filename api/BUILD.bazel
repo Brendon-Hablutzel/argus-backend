@@ -1,0 +1,68 @@
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@tar.bzl", "tar")
+load("//:scala/scalafmt.bzl", "scala_binary")
+
+scala_binary(
+    name = "api_binary",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    format = True,
+    main_class = "api.Main",
+    resources = glob(["src/main/resources/*"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common",
+        "@maven//:ch_qos_logback_logback_classic",
+        "@maven//:co_fs2_fs2_core_2_13",
+        "@maven//:co_fs2_fs2_io_2_13",
+        "@maven//:com_chuusai_shapeless_2_13",
+        "@maven//:com_comcast_ip4s_core_2_13",
+        "@maven//:io_circe_circe_core_2_13",
+        "@maven//:io_circe_circe_generic_2_13",
+        "@maven//:io_circe_circe_parser_2_13",
+        "@maven//:org_http4s_http4s_circe_2_13",
+        "@maven//:org_http4s_http4s_client_2_13",
+        "@maven//:org_http4s_http4s_core_2_13",
+        "@maven//:org_http4s_http4s_dsl_2_13",
+        "@maven//:org_http4s_http4s_ember_client_2_13",
+        "@maven//:org_http4s_http4s_ember_server_2_13",
+        "@maven//:org_http4s_http4s_jawn_2_13",
+        "@maven//:org_http4s_http4s_server_2_13",
+        "@maven//:org_slf4j_slf4j_api",
+        "@maven//:org_tpolecat_doobie_core_2_13",
+        "@maven//:org_tpolecat_doobie_free_2_13",
+        "@maven//:org_tpolecat_doobie_postgres_2_13",
+        "@maven//:org_typelevel_cats_core_2_13",
+        "@maven//:org_typelevel_cats_effect_2_13",
+        "@maven//:org_typelevel_cats_effect_kernel_2_13",
+        "@maven//:org_typelevel_cats_effect_std_2_13",
+        "@maven//:org_typelevel_cats_free_2_13",
+        "@maven//:org_typelevel_cats_kernel_2_13",
+        "@maven//:org_typelevel_literally_2_13",
+    ],
+)
+
+tar(
+    name = "api_tar",
+    # _deploy suffix indicates fat jar, as opposed to thin jar, which would be :api_binary.jar
+    srcs = [":api_binary_deploy.jar"],
+)
+
+oci_image(
+    name = "api_image",
+    base = "@java_base",
+    # the jar gets put in /api since that's where it is in the bazel-outputted tar
+    entrypoint = [
+        "java",
+        # TODO: ensure this works
+        "-Dlogback.configurationFile=/api/logback.xml",
+        "-jar",
+        "/api/api_binary_deploy.jar",
+    ],
+    tars = [":api_tar"],
+)
+
+oci_load(
+    name = "api_docker",
+    image = ":api_image",
+    repo_tags = ["argus-api:latest"],
+)

@@ -2,8 +2,10 @@ package processor
 
 import cats.effect.{IO, IOApp}
 
-object Main extends IOApp.Simple:
-  override def run: IO[Unit] =
+object Main extends IOApp.Simple {
+
+  override def run: IO[Unit] = {
+
     val resources = for {
       consumer <- KafkaClient.consumerResource
       session  <- DbClient.sessionResource
@@ -12,3 +14,5 @@ object Main extends IOApp.Simple:
     resources.use { case (consumer, session) =>
       Handler.impl(consumer, session).handleOnce.foreverM
     }
+  }
+}

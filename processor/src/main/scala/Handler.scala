@@ -1,42 +1,44 @@
 package processor
 
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.time.Duration
-import scala.collection.JavaConverters.iterableAsScalaIterableConverter
-import common.ActiveTabMessage
-import io.circe.*
-import io.circe.parser.*
-import io.circe.generic.semiauto.*
-import cats.Traverse.ops.toAllTraverseOps
-import cats.implicits.toFlatMapOps
-import org.slf4j.LoggerFactory
 import cats.effect.IO
-import doobie.util.transactor.Transactor
-import doobie.util.update.Update
-import java.sql.Timestamp
-import java.time.Instant
-import doobie._
+import cats.implicits.toFoldableOps
+import common.ActiveTabMessage
+import doobie.Update
 import doobie.implicits._
+import doobie.util.transactor.Transactor
+import io.circe.parser._
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.slf4j.LoggerFactory
 
-trait Handler:
+import java.sql.Timestamp
+import java.time.{Duration, Instant}
+import scala.jdk.CollectionConverters.IterableHasAsScala
+
+trait Handler {
   def handleOnce: IO[Unit]
+}
 
-object Handler:
+object Handler {
+
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def impl(consumer: KafkaConsumer[String, String], transactor: Transactor[IO]) =
+  def impl(consumer: KafkaConsumer[String, String], transactor: Transactor[IO]): Handler =
     new Handler {
       def handleOnce: IO[Unit] =
         for {
           records      <-
             IO.blocking(consumer.poll(Duration.ofMillis(5000)))
           validRecords <- IO {
-                            val mapped
-                              : List[Either[(String, String, Error), ActiveTabMessage]] =
+                            val mapped =
                               records.asScala.toList.map(record =>
-                                decode[ActiveTabMessage](record.value()).left.map { err =>
-                                  ((record.key(), record.value(), err))
-                                }
+                                decode[ActiveTabMessage](record.value()).left.map(err =>
+                                  // TODO: why err.toString
+                                  (
+                                    record.key(),
+                                    record.value(),
+                                    new Error(err.toString)
+                                  )
+                                )
                               )
 
                             val (invalidRecords, validRecords) =
@@ -45,45 +47,47 @@ object Handler:
                             invalidRecords.traverse_[IO, Unit] { case (key, value, err) =>
                               IO(
                                 logger.error(
-                                  s"invalid record (${err}): (${key}, ${value})"
+                                  s"invalid record ($err): ($key, $value)"
                                 )
                               )
                             }
 
                             validRecords
                           }
-          _            <- IO(logger.info(s"saving ${validRecords.length} rows: ${validRecords}"))
+          _            <- IO(logger.info(s"saving ${validRecords.length} rows: $validRecords"))
           res          <- if (validRecords.nonEmpty) {
+                            val records = validRecords.map { record =>
+                              val timestamp =
+                                Timestamp.from(Instant.ofEpochMilli(record.timestamp))
+
+                              val tab = record.tab
+
+                              (
+                                timestamp,
+                                tab.url,
+                                tab.title,
+                                tab.status.status,
+                                tab.profileId
+                              )
+                            }
+
                             val sql =
                               """INSERT INTO activetabs (timestamp, url, title, status, profile_id)
-                       |VALUES (?, ?, ?, ?, ?)""".stripMargin
+                       |VALUES (?, ?, ?, ?, ?)""".stripMargin.trim
 
                             val update =
                               Update[(Timestamp, String, String, String, String)](sql)
-                                .updateMany(
-                                  validRecords
-                                    .map(record =>
-                                      val timestamp =
-                                        Timestamp.from(Instant.ofEpochMilli(record.timestamp))
-
-                                      val tab = record.tab
-
-                                      (
-                                        timestamp,
-                                        tab.url,
-                                        tab.title,
-                                        tab.status.status,
-                                        tab.profileId
-                                      )
-                                    )
-                                )
 
                             update
+                              .updateMany(
+                                records
+                              )
                               .transact(transactor)
                               .map { rows =>
-                                logger.info(s"${rows} rows inserted successfully")
+                                logger.info(s"$rows rows inserted successfully")
                               }
                               .void
                           } else IO.unit
         } yield res
     }
+}

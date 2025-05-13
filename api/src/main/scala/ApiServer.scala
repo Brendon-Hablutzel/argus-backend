@@ -1,25 +1,20 @@
 package api
 
-import cats.effect.Async
-import cats.syntax.all.*
-import com.comcast.ip4s.*
-import fs2.io.net.Network
-import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.implicits.*
-import org.http4s.server.middleware.Logger
-import org.slf4j.LoggerFactory
 import cats.effect.IO
+import com.comcast.ip4s._
+import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.server.middleware.Logger
 
-object ApiServer:
-  private val logger = LoggerFactory.getLogger(getClass)
+object ApiServer {
 
-  def run: IO[Nothing] =
+  def run: IO[Nothing] = {
+
     val composedResource = for {
       transactor <- DbClient.sessionResource
       server     <- {
         val metricsAlg   = Metrics.impl(transactor)
-        val httpApp      = (ApiRoutes.metricsRoutes(metricsAlg)).orNotFound
-        val finalHttpApp = Logger.httpApp(true, true)(httpApp)
+        val httpApp      = ApiRoutes.metricsRoutes(metricsAlg).orNotFound
+        val finalHttpApp = Logger.httpApp(logHeaders = true, logBody = true)(httpApp)
 
         EmberServerBuilder
           .default[IO]
@@ -31,3 +26,5 @@ object ApiServer:
     } yield server
 
     composedResource.useForever
+  }
+}

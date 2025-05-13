@@ -1,12 +1,10 @@
-# sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
-
 name: Build and Push Multi-Arch Docker Image
 
 on:
   push:
-    branches: ['main', 'development']
+    branches: [ 'main', 'development' ]
   pull_request:
-    branches: ['main', 'development']
+    branches: [ 'main', 'development' ]
 
 jobs:
   build-and-push:
@@ -16,24 +14,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
-          distribution: temurin
-          java-version: 17
-          cache: sbt
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
+          repository-cache: true
 
-      - name: Set up sbt
-        uses: sbt/setup-sbt@v1
+      #        TODO: determine how to check formatting for all files at once
+      #      - name: Check formatting with bazel
+      #        run: ???
 
-      - name: Compile and assemble projects
-        run: sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
+      #        TODO: check formatting of bazel files as well
 
-      - name: Check formatting with scalafmt
-        run: sbt scalafmtCheck
+      - name: Build with bazel
+        run: bazel build //...
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      #      - name: Set up Docker Buildx
+      #        uses: docker/setup-buildx-action@v3
+      #        if: github.ref == 'refs/heads/main'
+
+      - name: Build ingestor image
+        run: |
+          bazel run //ingestor:ingestor_docker && \
+          docker tag argus-ingestor:latest ${{ secrets.DOCKER_USERNAME }}/argus-ingestor:latest
+        if: github.ref == 'refs/heads/main'
+
+      - name: Build processor image
+        run: |
+          bazel run //process:processor_docker && \
+          docker tag argus-processor:latest ${{ secrets.DOCKER_USERNAME }}/argus-processor:latest
+        if: github.ref == 'refs/heads/main'
+
+      - name: Build api image
+        run: |
+          bazel run //api:api_docker && \
+          docker tag argus-api:latest ${{ secrets.DOCKER_USERNAME }}/argus-api:latest
         if: github.ref == 'refs/heads/main'
 
       - name: Login to DockerHub
@@ -43,33 +61,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build and push argus-api
-        uses: docker/build-push-action@v5
+      - name: Push ingestor to Docker Hub
         if: github.ref == 'refs/heads/main'
-        with:
-          context: .
-          file: Dockerfile.api
-          push: true
-          tags: brendonhab/argus-api:latest
-          platforms: linux/amd64,linux/arm64
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/argus-ingestor:latest
 
-      - name: Build and push argus-ingestor
-        uses: docker/build-push-action@v5
+      - name: Push processor to Docker Hub
         if: github.ref == 'refs/heads/main'
-        with:
-          context: .
-          file: Dockerfile.ingestor
-          push: true
-          tags: brendonhab/argus-ingestor:latest
-          platforms: linux/amd64,linux/arm64
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/argus-processor:latest
 
-      
-      - name: Build and push argus-processor
-        uses: docker/build-push-action@v5
+      - name: Push api to Docker Hub
         if: github.ref == 'refs/heads/main'
-        with:
-          context: .
-          file: Dockerfile.processor
-          push: true
-          tags: brendonhab/argus-processor:latest
-          platforms: linux/amd64,linux/arm64
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/argus-api:latest

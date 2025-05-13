@@ -1,10 +1,10 @@
 package api
 
-import cats.effect.kernel.Resource
 import cats.effect.IO
+import cats.effect.kernel.Resource
 import doobie.util.transactor.Transactor
 
-object DbClient:
+object DbClient {
   def sessionResource: Resource[IO, Transactor[IO]] =
     Resource.make {
       IO {
@@ -19,6 +19,7 @@ object DbClient:
           logHandler = None
         )
       }
-    } { transactor =>
+    } { _ =>
       IO.unit
     }
+}
