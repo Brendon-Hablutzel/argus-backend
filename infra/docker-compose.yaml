@@ -4,7 +4,7 @@ services:
     hostname: broker
     container_name: broker
     ports:
-      - 9092:9092
+      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
@@ -27,7 +27,7 @@ services:
   db:
     image: timescale/timescaledb:latest-pg17
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: postgres
     volumes:
@@ -38,9 +38,6 @@ services:
 
   api:
     image: argus-api:latest
-    build:
-      context: ..
-      dockerfile: Dockerfile.api
     depends_on:
       - db
     environment:
@@ -54,9 +51,6 @@ services:
 
   processor:
     image: argus-processor:latest
-    build:
-      context: ..
-      dockerfile: Dockerfile.processor
     depends_on:
       - db
       - broker
@@ -71,9 +65,6 @@ services:
 
   ingestor:
     image: argus-ingestor:latest
-    build:
-      context: ..
-      dockerfile: Dockerfile.ingestor
     depends_on:
       - broker
     environment:
