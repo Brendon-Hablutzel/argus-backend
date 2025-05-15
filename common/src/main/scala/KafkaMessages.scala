@@ -62,6 +62,7 @@ object ActiveTabMessage {
   implicit val activeTabMessageDecoder: Decoder[ActiveTabMessage] = deriveDecoder
 }
 
+// NOTE: this must be in the same order as the fields in the CREATE TABLE statement
 final case class TabEventRow(
   timestamp: Timestamp,
   url: String,
