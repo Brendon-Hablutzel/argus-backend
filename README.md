@@ -1,50 +1,39 @@
 # Argus Backend
 
-Scala + sbt monorepo for Argus' backend.
+Monorepo for Argus' backend. Services are written in Scala and Bazel is used as the build tool.
 
 ## Development
 
-To run one of the scala services with hot reloading:
+Run a service with Bazel using `bazel run`, for example `api` can be run as follows:
 
 ```bash
-sbt
-
-project <project name>
-
-~reStart
+bazel run //api:api_binary
 ```
 
-To prepare for docker building, you must run the following:
-
-```
-sbt api/clean api/compile ingestor/clean ingestor/compile processor/clean processor/compile assembly
-```
-
-Individual project images can be built as follows:
-
-```
-docker build -f Dockerfile.api -t argus-api:latest .
-```
-
-<!-- To build and locally publish a docker image for one of the scala services:
+It can be run with hot reloading using [`ibazel`](https://github.com/bazelbuild/bazel-watcher), for example again with
+`api` as follows:
 
 ```bash
-DOCKER_BUILDKIT=0 sbt "<project name> / docker"
-``` -->
+ibazel run //api:api_binary
+```
 
 ## Components
 
 ### Kafka
 
-Kafka can be deployed locally with docker compose (see [this article](https://developer.confluent.io/confluent-tutorials/kafka-on-docker/) for details). Use `infra/docker-compose.yaml`.
+Kafka can be deployed locally with docker compose (see [this article](https://developer.confluent.io/confluent-tutorials/kafka-on-docker/) for details). 
+Use `infra/docker-compose.yaml`.
 
 ### TimescaleDB
 
-A Postgres extension that adds better support for handling timeseries data. See [here](https://github.com/timescale/timescaledb) for more details. Like Kafka, configuration for a local TimescaleDB deployment is included in `infra/`, and an instance can be deployed locally with `infra/docker-compose.yaml`
+A Postgres extension that adds better support for handling timeseries data. See [here](https://github.com/timescale/timescaledb) for more details. Like 
+Kafka, configuration for a local TimescaleDB deployment is included in `infra/`, and an instance can be deployed 
+locally with `infra/docker-compose.yaml`
 
 ### api
 
-HTTP server that sits between clients and TimescaleDB--fetches data and exposes it on several endpoints, performing analytics and aggregation as necessary.
+HTTP server that sits between clients and TimescaleDB--fetches data and exposes it on several endpoints, performing 
+analytics and aggregation as necessary.
 
 ### ingestor
 
