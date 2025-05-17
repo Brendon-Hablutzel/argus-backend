@@ -1,0 +1,1 @@
+# this is here because ibazel looks for WORKSPACE (even if it does not read it)
