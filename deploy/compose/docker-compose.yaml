@@ -45,7 +45,7 @@ services:
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres
     ports:
-      - 8081:8081
+      - "8081:8081"
     networks:
       - backend
 
@@ -70,7 +70,7 @@ services:
     environment:
       KAFKA_URL: broker:29092
     ports:
-      - 8080:8080
+      - "8080:8080"
     networks:
       - events
 

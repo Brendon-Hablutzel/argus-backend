@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-init-script
+  namespace: {{ .Release.Namespace }}
+data:
+  create-db.sql: |
+{{ .Files.Get "resources/create-db.sql" | indent 4 }}
