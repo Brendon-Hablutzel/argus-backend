@@ -37,6 +37,10 @@ object KafkaClient {
           classOf[StringDeserializer]
         )
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+        props.put(
+          ConsumerConfig.SOCKET_CONNECTION_SETUP_TIMEOUT_MAX_MS_CONFIG,
+          "120000" // 2 minutes
+        )
 
         val consumer = new KafkaConsumer[String, String](props)
         consumer.subscribe(Collections.singletonList(topic))

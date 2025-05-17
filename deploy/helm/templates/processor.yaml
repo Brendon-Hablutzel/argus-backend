@@ -18,10 +18,10 @@ spec:
           image: {{ .Values.processor.image }}
           env:
             - name: DATABASE_URL
-              value: jdbc:postgresql://db:5432/argus
+              value: jdbc:postgresql://db.{{ .Release.Namespace }}.svc.cluster.local:5432/argus
             - name: DATABASE_USER
               value: postgres
             - name: DATABASE_PASSWORD
               value: {{ .Values.db.password }}
             - name: KAFKA_URL
-              value: broker:29092
+              value: argus-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092

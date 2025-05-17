@@ -17,10 +17,10 @@ spec:
         - name: api
           image: {{ .Values.api.image }}
           ports:
-            - containerPort: {{ .Values.api.port }}
+            - containerPort: 8081
           env:
             - name: DATABASE_URL
-              value: jdbc:postgresql://db:5432/argus
+              value: jdbc:postgresql://db.{{ .Release.Namespace }}.svc.cluster.local:5432/argus
             - name: DATABASE_USER
               value: postgres
             - name: DATABASE_PASSWORD
@@ -37,4 +37,4 @@ spec:
     app: api
   ports:
     - port: {{ .Values.api.port }}
-      targetPort: {{ .Values.api.port }}
+      targetPort: 8081

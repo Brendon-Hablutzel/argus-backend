@@ -1,7 +1,3 @@
-broker:
-  image: apache/kafka:latest
-  port: 9092
-
 db:
   image: timescale/timescaledb:latest-pg17
   port: 5432
@@ -18,3 +14,41 @@ processor:
 ingestor:
   image: brendonhab/argus-ingestor:latest
   port: 8080
+
+kafka:
+  enabled: true
+  replicaCount: 1
+  auth:
+    # TODO: these might not do anything
+    # https://github.com/bitnami/charts/issues/20857
+    # this issue also explains the 'listeners:' options, used for disabling SASL
+    enabled: false
+    sasl:
+      enabled: false
+      mechanism: ""
+  security:
+    interBrokerProtocol: PLAINTEXT
+    clientProtocol: plaintext
+  zookeeper:
+    replicaCount: 1
+  listeners:
+    client:
+      name: CLIENT
+      containerPort: 9092
+      protocol: PLAINTEXT
+      sslClientAuth: ""
+    interbroker:
+      name: INTERNAL
+      containerPort: 9094
+      protocol: PLAINTEXT
+      sslClientAuth: ""
+    external:
+      name: EXTERNAL
+      containerPort: 9095
+      protocol: PLAINTEXT
+      sslClientAuth: ""
+    controller:
+      name: CONTROLLER
+      containerPort: 9093
+      protocol: PLAINTEXT
+      sslClientAuth: ""
