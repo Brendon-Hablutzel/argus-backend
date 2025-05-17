@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processor
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: processor
+  template:
+    metadata:
+      labels:
+        app: processor
+    spec:
+      containers:
+        - name: processor
+          image: {{ .Values.processor.image }}
+          env:
+            - name: DATABASE_URL
+              value: jdbc:postgresql://db:5432/argus
+            - name: DATABASE_USER
+              value: postgres
+            - name: DATABASE_PASSWORD
+              value: {{ .Values.db.password }}
+            - name: KAFKA_URL
+              value: broker:29092

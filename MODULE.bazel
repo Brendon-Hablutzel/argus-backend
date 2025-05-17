@@ -6,10 +6,10 @@ module(
 )
 
 bazel_dep(name = "rules_scala", version = "7.0.0")
-bazel_dep(name = "rules_java", version = "8.11.0")
 bazel_dep(name = "rules_jvm_external", version = "6.7")
 bazel_dep(name = "rules_oci", version = "2.2.6")
 bazel_dep(name = "tar.bzl", version = "0.2.1")
+bazel_dep(name = "rules_multirun", version = "0.12.0")
 
 scala_config = use_extension(
     "@rules_scala//scala/extensions:config.bzl",
@@ -26,30 +26,6 @@ scala_deps = use_extension(
 scala_deps.scala()
 scala_deps.scalafmt(
     default_config = ".scalafmt.conf",
-)
-
-scala_protoc = use_extension(
-    "@rules_scala//scala/extensions:protoc.bzl",
-    "scala_protoc",
-    dev_dependency = True,
-)
-use_repo(scala_protoc, "rules_scala_protoc_toolchains")
-
-register_toolchains(
-    "@rules_scala_protoc_toolchains//...:all",
-    dev_dependency = True,
-)
-
-bazel_dep(
-    name = "protobuf",
-    version = "30.2",
-    repo_name = "com_google_protobuf",
-)
-single_version_override(
-    module_name = "protobuf",
-    patch_strip = 1,
-    patches = ["//:protobuf.patch"],
-    version = "30.2",
 )
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
@@ -116,15 +92,13 @@ use_repo(maven, "maven")
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "java_base",
-    digest = "sha256:d80cf84d4d49682f047cb303a11be1fcc8322b1e4cd7a7c2b17454085c1f2ffb",
+    #    https://hub.docker.com/layers/library/eclipse-temurin/17.0.15_6-jre/images/sha256-518ef99fc39f18ce720ba8f659786ec7cf25202ac304ae2c8d4200d09e424a18
+    digest = "sha256:72b7169c507561dda17e70e4e3b8956b85bd353c46049aaf1e8cc6dba8960db0",
     image = "eclipse-temurin",
     platforms = [
         "linux/amd64",
-        "linux/arm/v7",
         "linux/arm64/v8",
-        "linux/ppc64le",
-        "linux/s390x",
-        "unknown/unknown",
+        "linux/arm/v7",
     ],
 )
 
@@ -135,7 +109,4 @@ use_repo(
     "java_base_linux_amd64",
     "java_base_linux_arm64_v8",
     "java_base_linux_arm_v7",
-    "java_base_linux_ppc64le",
-    "java_base_linux_s390x",
-    "java_base_unknown_unknown",
 )

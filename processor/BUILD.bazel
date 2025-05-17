@@ -1,6 +1,8 @@
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_load", "oci_push")
 load("@tar.bzl", "tar")
 load("//:scala/scalafmt.bzl", "scala_binary")
+
+package(default_visibility = ["//visibility:public"])
 
 scala_binary(
     name = "processor_binary",
@@ -39,8 +41,8 @@ tar(
 )
 
 oci_image(
-    name = "processor_image",
-    base = "@java_base",
+    name = "processor_image_amd64",
+    base = "@java_base_linux_amd64",
     # the jar gets put in /processor since that's where it is in the bazel-outputted tar
     entrypoint = [
         "java",
@@ -53,7 +55,61 @@ oci_image(
 )
 
 oci_load(
-    name = "processor_docker",
-    image = ":processor_image",
+    name = "processor_docker_amd64",
+    image = ":processor_image_amd64",
     repo_tags = ["argus-processor:latest"],
+)
+
+oci_image(
+    name = "processor_image_arm64_v8",
+    base = "@java_base_linux_arm64_v8",
+    entrypoint = [
+        "java",
+        # TODO: ensure this works
+        "-Dlogback.configurationFile=/processor/logback.xml",
+        "-jar",
+        "/processor/processor_binary_deploy.jar",
+    ],
+    tars = [":processor_tar"],
+)
+
+oci_load(
+    name = "processor_docker_arm64_v8",
+    image = ":processor_image_arm64_v8",
+    repo_tags = ["argus-processor:latest"],
+)
+
+oci_image(
+    name = "processor_image_arm_v7",
+    base = "@java_base_linux_arm_v7",
+    entrypoint = [
+        "java",
+        # TODO: ensure this works
+        "-Dlogback.configurationFile=/processor/logback.xml",
+        "-jar",
+        "/processor/processor_binary_deploy.jar",
+    ],
+    tars = [":processor_tar"],
+)
+
+oci_load(
+    name = "processor_docker_arm_v7",
+    image = ":processor_image_arm_v7",
+    repo_tags = ["argus-processor:latest"],
+)
+
+oci_image_index(
+    name = "processor_image_index",
+    images = [
+        ":processor_image_amd64",
+        ":processor_image_arm64_v8",
+        ":processor_image_arm_v7",
+    ],
+)
+
+oci_push(
+    name = "processor_image_push",
+    image = ":processor_image_index",
+    remote_tags = ["latest"],
+    repository = "index.docker.io/brendonhab/argus-processor",
 )

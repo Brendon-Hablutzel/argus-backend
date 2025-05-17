@@ -1,0 +1,20 @@
+broker:
+  image: apache/kafka:latest
+  port: 9092
+
+db:
+  image: timescale/timescaledb:latest-pg17
+  port: 5432
+  password: postgres
+  storageSize: 5Gi
+
+api:
+  image: brendonhab/argus-api:latest
+  port: 8081
+
+processor:
+  image: brendonhab/argus-processor:latest
+
+ingestor:
+  image: brendonhab/argus-ingestor:latest
+  port: 8080

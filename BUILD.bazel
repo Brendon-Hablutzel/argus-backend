@@ -1,1 +1,36 @@
+load("@rules_multirun//:defs.bzl", "multirun")
+
 package(default_visibility = ["//visibility:public"])
+
+multirun(
+    name = "scala_format",
+    commands = [
+        "//api:api_binary.format",
+        "//common:common.format",
+        "//ingestor:ingestor_binary.format",
+        "//processor:processor_binary.format",
+    ],
+)
+
+multirun(
+    name = "scala_format_test",
+    commands = [
+        "//api:api_binary.format-test",
+        "//common:common.format-test",
+        "//ingestor:ingestor_binary.format-test",
+        "//processor:processor_binary.format-test",
+    ],
+    # to run in parallel
+    jobs = 0,
+)
+
+multirun(
+    name = "push_all",
+    commands = [
+        "//api:api_image_push",
+        "//ingestor:ingestor_image_push",
+        "//processor:processor_image_push",
+    ],
+    # to run in parallel
+    jobs = 0,
+)

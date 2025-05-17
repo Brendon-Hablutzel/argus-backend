@@ -73,7 +73,7 @@ object Handler {
 
                             val sql =
                               """INSERT INTO activetabs (timestamp, url, title, status, profile_id)
-                       |VALUES (?, ?, ?, ?, ?)""".stripMargin.trim
+                                |VALUES (?, ?, ?, ?, ?)""".stripMargin.trim
 
                             val update =
                               Update[(Timestamp, String, String, String, String)](sql)
