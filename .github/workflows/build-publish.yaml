@@ -23,17 +23,13 @@ jobs:
           # Share repository cache between workflows.
           repository-cache: true
 
-      - name: Check formatting with bazel
-        run: bazel run //:scala_format_test
-
-      #        TODO: check formatting of bazel files as well
+      # TODO: check formatting of bazel files as well
 
       - name: Build with bazel
         run: bazel build //...
 
-      #      - name: Set up Docker Buildx
-      #        uses: docker/setup-buildx-action@v3
-      #        if: github.ref == 'refs/heads/main'
+      - name: Check formatting with bazel
+        run: bazel run //:scala_format_test
 
       - name: Login to DockerHub
         uses: docker/login-action@v3

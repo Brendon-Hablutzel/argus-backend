@@ -20,6 +20,8 @@ multirun(
         "//ingestor:ingestor_binary.format-test",
         "//processor:processor_binary.format-test",
     ],
+    # to run in parallel
+    jobs = 0,
 )
 
 multirun(
@@ -29,4 +31,6 @@ multirun(
         "//ingestor:ingestor_image_push",
         "//processor:processor_image_push",
     ],
+    # to run in parallel
+    jobs = 0,
 )

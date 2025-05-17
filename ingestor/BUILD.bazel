@@ -84,11 +84,31 @@ oci_load(
     repo_tags = ["argus-ingestor:latest"],
 )
 
+oci_image(
+    name = "ingestor_image_arm_v7",
+    base = "@java_base_linux_arm_v7",
+    entrypoint = [
+        "java",
+        # TODO: ensure this works
+        "-Dlogback.configurationFile=/ingestor/logback.xml",
+        "-jar",
+        "/ingestor/ingestor_binary_deploy.jar",
+    ],
+    tars = [":ingestor_tar"],
+)
+
+oci_load(
+    name = "ingestor_docker_arm_v7",
+    image = ":ingestor_image_arm_v7",
+    repo_tags = ["argus-ingestor:latest"],
+)
+
 oci_image_index(
     name = "ingestor_image_index",
     images = [
         ":ingestor_image_amd64",
         ":ingestor_image_arm64_v8",
+        ":ingestor_image_arm_v7",
     ],
 )
 

@@ -79,11 +79,31 @@ oci_load(
     repo_tags = ["argus-processor:latest"],
 )
 
+oci_image(
+    name = "processor_image_arm_v7",
+    base = "@java_base_linux_arm_v7",
+    entrypoint = [
+        "java",
+        # TODO: ensure this works
+        "-Dlogback.configurationFile=/processor/logback.xml",
+        "-jar",
+        "/processor/processor_binary_deploy.jar",
+    ],
+    tars = [":processor_tar"],
+)
+
+oci_load(
+    name = "processor_docker_arm_v7",
+    image = ":processor_image_arm_v7",
+    repo_tags = ["argus-processor:latest"],
+)
+
 oci_image_index(
     name = "processor_image_index",
     images = [
         ":processor_image_amd64",
         ":processor_image_arm64_v8",
+        ":processor_image_arm_v7",
     ],
 )
 

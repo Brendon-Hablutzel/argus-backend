@@ -336,7 +336,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "8fB61KHYOU4XHH65DqVw59ZIDGO29I2WIbVHxii4slA=",
-        "usagesDigest": "FLpm6nrcxA7e7pWP1RU46Eo0cjBiW6pmk9eGvHBXii4=",
+        "usagesDigest": "u2sEHXTse36v7hOhpUjCDyV4A34yydcM/sbQgAQe49k=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -348,7 +348,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/eclipse-temurin",
-              "identifier": "sha256:d80cf84d4d49682f047cb303a11be1fcc8322b1e4cd7a7c2b17454085c1f2ffb",
+              "identifier": "sha256:72b7169c507561dda17e70e4e3b8956b85bd353c46049aaf1e8cc6dba8960db0",
               "platform": "linux/amd64",
               "target_name": "java_base_linux_amd64",
               "bazel_tags": []
@@ -361,9 +361,22 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/eclipse-temurin",
-              "identifier": "sha256:d80cf84d4d49682f047cb303a11be1fcc8322b1e4cd7a7c2b17454085c1f2ffb",
+              "identifier": "sha256:72b7169c507561dda17e70e4e3b8956b85bd353c46049aaf1e8cc6dba8960db0",
               "platform": "linux/arm64/v8",
               "target_name": "java_base_linux_arm64_v8",
+              "bazel_tags": []
+            }
+          },
+          "java_base_linux_arm_v7": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "library/eclipse-temurin",
+              "identifier": "sha256:72b7169c507561dda17e70e4e3b8956b85bd353c46049aaf1e8cc6dba8960db0",
+              "platform": "linux/arm/v7",
+              "target_name": "java_base_linux_arm_v7",
               "bazel_tags": []
             }
           },
@@ -375,10 +388,11 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/eclipse-temurin",
-              "identifier": "sha256:d80cf84d4d49682f047cb303a11be1fcc8322b1e4cd7a7c2b17454085c1f2ffb",
+              "identifier": "sha256:72b7169c507561dda17e70e4e3b8956b85bd353c46049aaf1e8cc6dba8960db0",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@java_base_linux_amd64",
-                "@@platforms//cpu:arm64": "@java_base_linux_arm64_v8"
+                "@@platforms//cpu:arm64": "@java_base_linux_arm64_v8",
+                "@@platforms//cpu:armv7": "@java_base_linux_arm_v7"
               },
               "bzlmod_repository": "java_base",
               "reproducible": true
@@ -502,7 +516,8 @@
           "explicitRootModuleDirectDeps": [
             "java_base",
             "java_base_linux_amd64",
-            "java_base_linux_arm64_v8"
+            "java_base_linux_arm64_v8",
+            "java_base_linux_arm_v7"
           ],
           "explicitRootModuleDirectDevDeps": [],
           "useAllRepos": "NO",
