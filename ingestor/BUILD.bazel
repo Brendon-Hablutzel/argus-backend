@@ -1,6 +1,8 @@
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_load", "oci_push")
 load("@tar.bzl", "tar")
 load("//:scala/scalafmt.bzl", "scala_binary")
+
+package(default_visibility = ["//visibility:public"])
 
 scala_binary(
     name = "ingestor_binary",
@@ -44,8 +46,9 @@ tar(
 )
 
 oci_image(
-    name = "ingestor_image",
-    base = "@java_base",
+    name = "ingestor_image_amd64",
+    base = "@java_base_linux_amd64",
+    # the jar gets put in /ingestor since that's where it is in the bazel-outputted tar
     entrypoint = [
         "java",
         # TODO: ensure this works
@@ -56,9 +59,42 @@ oci_image(
     tars = [":ingestor_tar"],
 )
 
-# NOTE: the output of this command is a bash script that loads the image onto the local docker daemon
 oci_load(
-    name = "ingestor_docker",
-    image = ":ingestor_image",
+    name = "ingestor_docker_amd64",
+    image = ":ingestor_image_amd64",
     repo_tags = ["argus-ingestor:latest"],
+)
+
+oci_image(
+    name = "ingestor_image_arm64_v8",
+    base = "@java_base_linux_arm64_v8",
+    entrypoint = [
+        "java",
+        # TODO: ensure this works
+        "-Dlogback.configurationFile=/ingestor/logback.xml",
+        "-jar",
+        "/ingestor/ingestor_binary_deploy.jar",
+    ],
+    tars = [":ingestor_tar"],
+)
+
+oci_load(
+    name = "ingestor_docker_arm64_v8",
+    image = ":ingestor_image_arm64_v8",
+    repo_tags = ["argus-ingestor:latest"],
+)
+
+oci_image_index(
+    name = "ingestor_image_index",
+    images = [
+        ":ingestor_image_amd64",
+        ":ingestor_image_arm64_v8",
+    ],
+)
+
+oci_push(
+    name = "ingestor_image_push",
+    image = ":ingestor_image_index",
+    remote_tags = ["latest"],
+    repository = "index.docker.io/brendonhab/argus-ingestor",
 )
