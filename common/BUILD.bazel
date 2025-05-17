@@ -1,4 +1,4 @@
-load("//:scala/scalafmt.bzl", "scala_library")
+load("//:bazel/scalafmt.bzl", "scala_library")
 
 scala_library(
     name = "common",
