@@ -32,6 +32,10 @@ object KafkaClient {
           ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
           classOf[StringSerializer].getName
         )
+        props.put(
+          ProducerConfig.SOCKET_CONNECTION_SETUP_TIMEOUT_MAX_MS_CONFIG,
+          "120000" // 2 minutes
+        )
         new KafkaProducer[String, String](props)
       }
     }(producer => Async[F].delay(producer.close()))

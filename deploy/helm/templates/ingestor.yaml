@@ -17,11 +17,10 @@ spec:
         - name: ingestor
           image: {{ .Values.ingestor.image }}
           ports:
-            - containerPort: {{ .Values.ingestor.port }}
+            - containerPort: 8080
           env:
             - name: KAFKA_URL
-              value: broker:29092
-
+              value: argus-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092
 ---
 apiVersion: v1
 kind: Service
@@ -32,4 +31,4 @@ spec:
     app: ingestor
   ports:
     - port: {{ .Values.ingestor.port }}
-      targetPort: {{ .Values.ingestor.port }}
+      targetPort: 8080
