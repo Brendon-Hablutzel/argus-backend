@@ -1,6 +1,7 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_load", "oci_push")
 load("@tar.bzl", "tar")
-load("//:scala/scalafmt.bzl", "scala_binary")
+load("//:bazel/multiarch.bzl", "multi_arch_image")
+load("//:bazel/scalafmt.bzl", "scala_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -45,10 +46,16 @@ tar(
     srcs = [":ingestor_binary_deploy.jar"],
 )
 
-oci_image(
-    name = "ingestor_image_amd64",
-    base = "@java_base_linux_amd64",
-    # the jar gets put in /ingestor since that's where it is in the bazel-outputted tar
+# to build the index: bazel build //ingestor:ingestor_image_index
+# to push to docker hub: bazel run //ingestor:ingestor_image_push
+multi_arch_image(
+    name = "ingestor",
+    base_images = {
+        "amd64": "@java_base_linux_amd64",
+        "arm64_v8": "@java_base_linux_arm64_v8",
+        "arm_v7": "@java_base_linux_arm_v7",
+    },
+    docker_repo = "brendonhab/argus-ingestor",
     entrypoint = [
         "java",
         # TODO: ensure this works
@@ -56,65 +63,5 @@ oci_image(
         "-jar",
         "/ingestor/ingestor_binary_deploy.jar",
     ],
-    tars = [":ingestor_tar"],
-)
-
-oci_load(
-    name = "ingestor_docker_amd64",
-    image = ":ingestor_image_amd64",
-    repo_tags = ["argus-ingestor:latest"],
-)
-
-oci_image(
-    name = "ingestor_image_arm64_v8",
-    base = "@java_base_linux_arm64_v8",
-    entrypoint = [
-        "java",
-        # TODO: ensure this works
-        "-Dlogback.configurationFile=/ingestor/logback.xml",
-        "-jar",
-        "/ingestor/ingestor_binary_deploy.jar",
-    ],
-    tars = [":ingestor_tar"],
-)
-
-oci_load(
-    name = "ingestor_docker_arm64_v8",
-    image = ":ingestor_image_arm64_v8",
-    repo_tags = ["argus-ingestor:latest"],
-)
-
-oci_image(
-    name = "ingestor_image_arm_v7",
-    base = "@java_base_linux_arm_v7",
-    entrypoint = [
-        "java",
-        # TODO: ensure this works
-        "-Dlogback.configurationFile=/ingestor/logback.xml",
-        "-jar",
-        "/ingestor/ingestor_binary_deploy.jar",
-    ],
-    tars = [":ingestor_tar"],
-)
-
-oci_load(
-    name = "ingestor_docker_arm_v7",
-    image = ":ingestor_image_arm_v7",
-    repo_tags = ["argus-ingestor:latest"],
-)
-
-oci_image_index(
-    name = "ingestor_image_index",
-    images = [
-        ":ingestor_image_amd64",
-        ":ingestor_image_arm64_v8",
-        ":ingestor_image_arm_v7",
-    ],
-)
-
-oci_push(
-    name = "ingestor_image_push",
-    image = ":ingestor_image_index",
-    remote_tags = ["latest"],
-    repository = "index.docker.io/brendonhab/argus-ingestor",
+    tar = ":ingestor_tar",
 )

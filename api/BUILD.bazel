@@ -1,6 +1,7 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_load", "oci_push")
 load("@tar.bzl", "tar")
-load("//:scala/scalafmt.bzl", "scala_binary")
+load("//:bazel/multiarch.bzl", "multi_arch_image")
+load("//:bazel/scalafmt.bzl", "scala_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -49,10 +50,16 @@ tar(
     srcs = [":api_binary_deploy.jar"],
 )
 
-oci_image(
-    name = "api_image_amd64",
-    base = "@java_base_linux_amd64",
-    # the jar gets put in /api since that's where it is in the bazel-outputted tar
+# to build the index: bazel build //api:api_image_index
+# to push to docker hub: bazel run //api:api_image_push
+multi_arch_image(
+    name = "api",
+    base_images = {
+        "amd64": "@java_base_linux_amd64",
+        "arm64_v8": "@java_base_linux_arm64_v8",
+        "arm_v7": "@java_base_linux_arm_v7",
+    },
+    docker_repo = "brendonhab/argus-api",
     entrypoint = [
         "java",
         # TODO: ensure this works
@@ -60,65 +67,5 @@ oci_image(
         "-jar",
         "/api/api_binary_deploy.jar",
     ],
-    tars = [":api_tar"],
-)
-
-oci_load(
-    name = "api_docker_amd64",
-    image = ":api_image_amd64",
-    repo_tags = ["argus-api:latest"],
-)
-
-oci_image(
-    name = "api_image_arm64_v8",
-    base = "@java_base_linux_arm64_v8",
-    entrypoint = [
-        "java",
-        # TODO: ensure this works
-        "-Dlogback.configurationFile=/api/logback.xml",
-        "-jar",
-        "/api/api_binary_deploy.jar",
-    ],
-    tars = [":api_tar"],
-)
-
-oci_load(
-    name = "api_docker_arm64_v8",
-    image = ":api_image_arm64_v8",
-    repo_tags = ["argus-api:latest"],
-)
-
-oci_image(
-    name = "api_image_arm_v7",
-    base = "@java_base_linux_arm_v7",
-    entrypoint = [
-        "java",
-        # TODO: ensure this works
-        "-Dlogback.configurationFile=/api/logback.xml",
-        "-jar",
-        "/api/api_binary_deploy.jar",
-    ],
-    tars = [":api_tar"],
-)
-
-oci_load(
-    name = "api_docker_arm_v7",
-    image = ":api_image_arm_v7",
-    repo_tags = ["argus-api:latest"],
-)
-
-oci_image_index(
-    name = "api_image_index",
-    images = [
-        ":api_image_amd64",
-        ":api_image_arm64_v8",
-        ":api_image_arm_v7",
-    ],
-)
-
-oci_push(
-    name = "api_image_push",
-    image = ":api_image_index",
-    remote_tags = ["latest"],
-    repository = "index.docker.io/brendonhab/argus-api",
+    tar = ":api_tar",
 )
